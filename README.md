@@ -88,7 +88,7 @@ npm install express express-graphql graphql
 #### **b. Install Development Dependencies**
 
 ```bash
-npm install --save-dev typescript @types/node @types/express @types/express-graphql nodemon ts-node
+npm install --save-dev typescript @types/node @types/express nodemon ts-node @types/express-graphql
 ```
 
 - **`typescript`**: Adds TypeScript support.

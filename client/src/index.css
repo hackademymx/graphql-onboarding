@@ -1,3 +1,10 @@
+/* Existing Tailwind imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Background Pattern */
+.bg-pattern {
+  background-image: radial-gradient(circle at 1px 1px, #e5e7eb 1px, transparent 0);
+  background-size: 20px 20px;
+}

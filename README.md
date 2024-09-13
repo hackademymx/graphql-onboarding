@@ -100,7 +100,7 @@ npm install --save-dev typescript @types/node @types/express nodemon ts-node @ty
 
 Create a `tsconfig.json` file to configure the TypeScript compiler.
 
-gggson
+```json
 {
   "compilerOptions": {
     "target": "ES6",                          /* Specify ECMAScript target version */

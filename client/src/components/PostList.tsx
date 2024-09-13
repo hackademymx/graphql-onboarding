@@ -7,14 +7,21 @@ const PostList: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            const response = await axios.get<Post[]>('http://localhost:3000/posts');
-            setPosts(response.data);
-        };
+    const fetchPosts = async () => {
+        const response = await axios.get<Post[]>('http://localhost:3000/posts');
+        setPosts(response.data);
+    };
 
+    useEffect(() => {
         fetchPosts();
     }, []);
+
+    const handleDelete = async (id: number) => {
+        if (window.confirm('Are you sure you want to delete this post?')) {
+            await axios.delete(`http://localhost:3000/posts/${id}`);
+            fetchPosts(); // Refresh the list after deletion
+        }
+    };
 
     return (
         <div>
@@ -28,12 +35,18 @@ const PostList: React.FC = () => {
                 </button>
             </div>
             {posts.map((post) => (
-                <div key={post.id} className="border p-4 mb-4">
+                <div key={post.id} className="border p-4 mb-4 flex justify-between items-center">
                     <h3 className="text-xl font-semibold">
                         <Link to={`/posts/${post.id}`} className="text-blue-500">
                             {post.title}
                         </Link>
                     </h3>
+                    <button
+                        onClick={() => handleDelete(post.id)}
+                        className="bg-red-500 text-white px-2 py-1 rounded"
+                    >
+                        Delete
+                    </button>
                 </div>
             ))}
         </div>

@@ -1,5 +1,3 @@
-// src/components/PostDetail.tsx
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Post, Comment } from '../types';
@@ -11,19 +9,19 @@ const PostDetail: React.FC = () => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState('');
 
+    const fetchPost = async () => {
+        const response = await axios.get<Post>(`http://localhost:3000/posts/${id}`);
+        setPost(response.data);
+    };
+
+    const fetchComments = async () => {
+        const response = await axios.get<Comment[]>(
+            `http://localhost:3000/posts/${id}/comments`
+        );
+        setComments(response.data);
+    };
+
     useEffect(() => {
-        const fetchPost = async () => {
-            const response = await axios.get<Post>(`http://localhost:3000/posts/${id}`);
-            setPost(response.data);
-        };
-
-        const fetchComments = async () => {
-            const response = await axios.get<Comment[]>(
-                `http://localhost:3000/posts/${id}/comments`
-            );
-            setComments(response.data);
-        };
-
         fetchPost();
         fetchComments();
     }, [id]);
@@ -36,11 +34,14 @@ const PostDetail: React.FC = () => {
         });
 
         setCommentText('');
-        // Refresh comments
-        const response = await axios.get<Comment[]>(
-            `http://localhost:3000/posts/${id}/comments`
-        );
-        setComments(response.data);
+        fetchComments();
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        if (window.confirm('Are you sure you want to delete this comment?')) {
+            await axios.delete(`http://localhost:3000/comments/${commentId}`);
+            fetchComments(); // Refresh comments after deletion
+        }
     };
 
     if (!post) {
@@ -76,8 +77,17 @@ const PostDetail: React.FC = () => {
             <h3 className="text-xl font-semibold mb-2">Comments</h3>
             {comments.length > 0 ? (
                 comments.map((comment) => (
-                    <div key={comment.id} className="border p-2 mb-2">
+                    <div
+                        key={comment.id}
+                        className="border p-2 mb-2 flex justify-between items-center"
+                    >
                         <p>{comment.text}</p>
+                        <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="bg-red-500 text-white px-2 py-1 rounded"
+                        >
+                            Delete
+                        </button>
                     </div>
                 ))
             ) : (

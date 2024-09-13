@@ -46,7 +46,7 @@ const PostList: React.FC = () => {
                         {posts.map((post) => (
                             <div
                                 key={post.id}
-                                className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center"
+                                className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center hover:bg-gray-100 transition duration-200"
                             >
                                 <Link to={`/posts/${post.id}`} className="flex-1">
                                     <h3 className="text-2xl text-gray-800 hover:text-blue-500 transition duration-200">

@@ -24,7 +24,7 @@ const PostList: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="max-w-2xl mx-auto">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Posts</h2>
                 <button

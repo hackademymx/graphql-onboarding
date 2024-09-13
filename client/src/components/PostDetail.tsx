@@ -49,29 +49,12 @@ const PostDetail: React.FC = () => {
     }
 
     return (
-        <div>
+        <div className="max-w-2xl mx-auto">
             <Link to="/" className="text-blue-500">
                 Back to Posts
             </Link>
             <h2 className="text-2xl font-bold mb-2 mt-4">{post.title}</h2>
             <p className="mb-4">{post.content}</p>
-
-            {/* Comment Form */}
-            <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-2">Add a Comment</h3>
-                <form onSubmit={handleCommentSubmit}>
-                    <textarea
-                        className="border p-2 w-full mb-2"
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        required
-                        rows={4}
-                    ></textarea>
-                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                        Submit Comment
-                    </button>
-                </form>
-            </div>
 
             {/* Comments List */}
             <h3 className="text-xl font-semibold mb-2">Comments</h3>
@@ -93,6 +76,23 @@ const PostDetail: React.FC = () => {
             ) : (
                 <p>No comments yet.</p>
             )}
+
+            {/* Comment Form */}
+            <div className="mt-6">
+                <h3 className="text-xl font-semibold mb-2">Add a Comment</h3>
+                <form onSubmit={handleCommentSubmit}>
+                    <textarea
+                        className="border p-2 w-full mb-2"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        required
+                        rows={4}
+                    ></textarea>
+                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                        Submit Comment
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

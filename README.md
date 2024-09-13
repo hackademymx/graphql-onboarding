@@ -1,4 +1,4 @@
-# **GraphQL vs REST: TypeScript Example Project**
+# **GraphQL vs REST: TypeScript Example Blog Project**
 
 This project demonstrates the migration from a RESTful API to a GraphQL API using TypeScript. It provides a hands-on experience to understand the benefits of GraphQL over REST in a practical application.
 

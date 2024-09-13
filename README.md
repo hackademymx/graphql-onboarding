@@ -1,554 +1,211 @@
-# **GraphQL vs REST: TypeScript Example Blog Project**
+# **Full-Stack Blog Application**
 
-This project demonstrates the migration from a RESTful API to a GraphQL API using TypeScript. It provides a hands-on experience to understand the benefits of GraphQL over REST in a practical application.
+This project is a full-stack web application that demonstrates the differences between REST and GraphQL APIs in a practical way. It consists of:
+
+- **Server**: A Node.js and TypeScript backend using Express.js, providing RESTful endpoints.
+- **Client**: A React application using TypeScript and Tailwind CSS to consume the API.
+
+---
 
 ## **Table of Contents**
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
-- [Project Overview](#project-overview)
-- [Setup Instructions](#setup-instructions)
-  - [1. Clone the Repository](#1-clone-the-repository)
-  - [2. Install Dependencies](#2-install-dependencies)
-  - [3. Set Up TypeScript Configuration](#3-set-up-typescript-configuration)
-  - [4. Implement the REST API](#4-implement-the-rest-api)
-  - [5. Implement the GraphQL API](#5-implement-the-graphql-api)
-  - [6. Build and Run the Project](#6-build-and-run-the-project)
-- [Testing the APIs](#testing-the-apis)
-  - [REST API Testing](#rest-api-testing)
-  - [GraphQL API Testing](#graphql-api-testing)
-- [Observations and Benefits](#observations-and-benefits)
-- [Hands-On Exercises](#hands-on-exercises)
-- [Conclusion](#conclusion)
-- [Additional Resources](#additional-resources)
+- [Project Setup](#project-setup)
+  - [Clone the Repository](#clone-the-repository)
+  - [Setup the Server](#setup-the-server)
+  - [Setup the Client](#setup-the-client)
+- [Running the Application](#running-the-application)
+  - [Running the Server](#running-the-server)
+  - [Running the Client](#running-the-client)
+- [Understanding the REST Approach](#understanding-the-rest-approach)
+  - [Multiple Requests Issue](#multiple-requests-issue)
+  - [Data Refetching](#data-refetching)
+- [Migrating to GraphQL](#migrating-to-graphql)
+- [Why Migrate to GraphQL?](#why-migrate-to-graphql)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
 ## **Introduction**
 
-This project aims to help you and your team understand the fundamental differences between REST and GraphQL APIs by:
+This project aims to illustrate the practical differences between REST and GraphQL APIs by building a simple blog application. In the current REST implementation, the client needs to make multiple requests to fetch related data (e.g., posts and their comments), and additional requests are required to keep the data up-to-date after mutations like deletions.
 
-- Building a simple blogging platform API with both REST and GraphQL endpoints.
-- Observing the limitations of REST and the advantages of GraphQL.
-- Providing hands-on experience with TypeScript in backend development.
+In the `refactor/migrate-to-graphql` branch, we will demonstrate how to migrate this application to use GraphQL, addressing some of the limitations encountered with the REST approach.
 
 ---
 
 ## **Prerequisites**
 
-Before you begin, ensure you have the following installed on your system:
-
-- **Node.js** (v14 or higher)
-- **npm** (Node Package Manager)
-- **TypeScript** (installed globally)
-  ```bash
-  npm install -g typescript
-  ```
-- **Git** (for cloning the repository, or you can download the ZIP)
+- **Node.js** (version 14 or higher)
+- **npm** (version 6 or higher)
+- **Git**
 
 ---
 
-## **Project Overview**
+## **Project Setup**
 
-We will build an API for a simple blogging platform where users can:
+### **Clone the Repository**
 
-- Create and retrieve blog posts.
-- Add comments to posts.
-- Fetch posts along with their comments
-
-## **Setup Instructions**
-
-Follow these steps to set up the project on your local machine.
-
-### **1. Clone the Repository**
-
-First, clone the repository from GitHub (or you can create a new directory if you're not using a repository).
+First, clone the repository to your local machine:
 
 ```bash
 git clone git@github.com:hackademymx/graphql-onboarding.git
 cd graphql-onboarding
 ```
 
-### **2. Initialize the Project**
+### **Setup the Server**
 
-Initialize a new Node.js project with TypeScript support.
-
-```bash
-npm init -y
-```
-
-### **3. Install Dependencies**
-
-#### **a. Install Runtime Dependencies**
+Navigate to the `server` directory and install the dependencies:
 
 ```bash
-npm install express express-graphql graphql
+cd server
+npm install
 ```
 
-#### **b. Install Development Dependencies**
+### **Setup the Client**
+
+Navigate to the `client` directory and install the dependencies:
 
 ```bash
-npm install --save-dev typescript @types/node @types/express nodemon ts-node @types/express-graphql
+cd ../client
+npm install
 ```
-
-- **`typescript`**: Adds TypeScript support.
-- **`@types/*`**: Provides TypeScript definitions for Node.js and Express.
-- **`nodemon`**: Automatically restarts the server on code changes.
-- **`ts-node`**: Allows running TypeScript files directly.
-
-### **4. Set Up TypeScript Configuration**
-
-Create a `tsconfig.json` file to configure the TypeScript compiler.
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES6",                          /* Specify ECMAScript target version */
-    "module": "commonjs",                     /* Specify module code generation */
-    "rootDir": "./src",                       /* Root directory of input files */
-    "outDir": "./dist",                       /* Directory to output files */
-    "esModuleInterop": true,                  /* Enables emit interoperability between CommonJS and ES Modules */
-    "strict": true,                           /* Enable all strict type-checking options */
-    "skipLibCheck": true                      /* Skip type checking of declaration files */
-  }
-}
-```
-
-### **5. Create the Project Structure**
-
-Create the following folders and files:
-
-```
-├── src
-│   ├── data.ts
-│   ├── index.ts
-├── package.json
-├── tsconfig.json
-```
-
-### **6. Implement the REST API**
-
-#### **a. `src/data.ts`**
-
-This file will contain in-memory data storage.
-
-```typescript
-// src/data.ts
-
-export interface Post {
-  id: number;
-  title: string;
-  content: string;
-}
-
-export interface Comment {
-  id: number;
-  postId: number;
-  text: string;
-}
-
-export const posts: Post[] = [];
-export const comments: Comment[] = [];
-```
-
-#### **b. `src/index.ts`**
-
-Set up the Express server and REST endpoints.
-
-```typescript
-// src/index.ts
-
-import express, { Request, Response } from 'express';
-import bodyParser from 'body-parser';
-import { posts, comments, Post, Comment } from './data';
-
-const app = express();
-app.use(bodyParser.json());
-
-// Create a new post
-app.post('/posts', (req: Request, res: Response) => {
-  const id = posts.length + 1;
-  const post: Post = { id, title: req.body.title, content: req.body.content };
-  posts.push(post);
-  res.status(201).json(post);
-});
-
-// Get all posts
-app.get('/posts', (req: Request, res: Response) => {
-  res.json(posts);
-});
-
-// Get a specific post
-app.get('/posts/:id', (req: Request, res: Response) => {
-  const post = posts.find(p => p.id === parseInt(req.params.id));
-  if (!post) return res.status(404).json({ error: 'Post not found' });
-  res.json(post);
-});
-
-// Create a comment for a post
-app.post('/posts/:id/comments', (req: Request, res: Response) => {
-  const postId = parseInt(req.params.id);
-  const post = posts.find(p => p.id === postId);
-  if (!post) return res.status(404).json({ error: 'Post not found' });
-
-  const id = comments.length + 1;
-  const comment: Comment = { id, postId, text: req.body.text };
-  comments.push(comment);
-  res.status(201).json(comment);
-});
-
-// Get comments for a post
-app.get('/posts/:id/comments', (req: Request, res: Response) => {
-  const postId = parseInt(req.params.id);
-  const postComments = comments.filter(c => c.postId === postId);
-  res.json(postComments);
-});
-
-// Start the REST server
-app.listen(3000, () => console.log('REST API running on port 3000'));
-```
-
-### **7. Implement the GraphQL API**
-
-#### **a. Update Dependencies**
-
-Ensure you have installed `express-graphql` and `graphql`:
-
-```bash
-npm install express-graphql graphql
-npm install --save-dev @types/graphql
-```
-
-#### **b. Update `src/index.ts`**
-
-Add GraphQL functionality to the existing Express server.
-
-```typescript
-// src/index.ts (Add the following imports at the top)
-
-import { graphqlHTTP } from 'express-graphql';
-import { buildSchema } from 'graphql';
-
-// Define GraphQL schema
-const schema = buildSchema(`
-  type Post {
-    id: ID!
-    title: String!
-    content: String!
-    comments: [Comment]
-  }
-
-  type Comment {
-    id: ID!
-    postId: ID!
-    text: String!
-  }
-
-  type Query {
-    posts: [Post]
-    post(id: ID!): Post
-  }
-
-  type Mutation {
-    createPost(title: String!, content: String!): Post
-    createComment(postId: ID!, text: String!): Comment
-  }
-`);
-
-// Define resolvers
-const root = {
-  posts: () => posts,
-  post: ({ id }: { id: number }) => posts.find(p => p.id === id),
-  createPost: ({ title, content }: { title: string; content: string }) => {
-    const id = posts.length + 1;
-    const post: Post = { id, title, content };
-    posts.push(post);
-    return post;
-  },
-  createComment: ({ postId, text }: { postId: number; text: string }) => {
-    const id = comments.length + 1;
-    const comment: Comment = { id, postId, text };
-    comments.push(comment);
-    return comment;
-  },
-  Post: {
-    comments: (parent: Post) => comments.filter(c => c.postId === parent.id),
-  },
-};
-
-// Add GraphQL endpoint
-app.use('/graphql', graphqlHTTP({
-  schema,
-  rootValue: root,
-  graphiql: true, // Enable GraphiQL interface
-}));
-
-// Start the GraphQL server on a different port
-app.listen(4000, () => console.log('GraphQL API running on port 4000'));
-```
-
-### **8. Update `package.json` Scripts**
-
-Add scripts to simplify building and running the project.
-
-```json
-"scripts": {
-  "build": "tsc",
-  "start": "nodemon src/index.ts",
-  "start:rest": "nodemon --watch src src/index.ts",
-  "start:graphql": "nodemon --watch src src/index.ts"
-},
-```
-
-### **9. Install Nodemon Configuration**
-
-Create a `nodemon.json` file for better control over Nodemon.
-
-```json
-{
-  "watch": ["src"],
-  "ext": "ts",
-  "ignore": ["src/**/*.spec.ts"],
-  "exec": "ts-node ./src/index.ts"
-}
-```
-
-### **10. Build and Run the Project**
-
-#### **a. Build the Project**
-
-Although we're using `ts-node` for on-the-fly compilation, you can build the project using:
-
-```bash
-npm run build
-```
-
-This will compile TypeScript files to JavaScript in the `dist` directory.
-
-#### **b. Run the REST API**
-
-To run the REST API on port 3000:
-
-```bash
-npm run start:rest
-```
-
-#### **c. Run the GraphQL API**
-
-To run the GraphQL API on port 4000:
-
-```bash
-npm run start:graphql
-```
-
-**Note:** Since both APIs are in the same `index.ts` file, running either script will start both servers unless you modify the code to conditionally start servers based on environment variables.
 
 ---
 
-## **Testing the APIs**
+## **Running the Application**
 
-### **REST API Testing**
+### **Running the Server**
 
-Use a tool like **Postman** or **cURL** to interact with the REST API.
+From the `server` directory, start the server:
 
-- **Create a Post**
+```bash
+cd server
+npm start
+```
 
-  ```http
-  POST http://localhost:3000/posts
-  Content-Type: application/json
+This will start the server on **port 3000**.
 
-  {
-    "title": "First Post",
-    "content": "This is the first post."
-  }
-  ```
+### **Running the Client**
 
-- **Get All Posts**
+In a new terminal window, navigate to the `client` directory and start the client:
 
-  ```http
-  GET http://localhost:3000/posts
-  ```
+```bash
+cd client
+npm start
+```
 
-- **Create a Comment**
+The React application will start on **port 3001**.
 
-  ```http
-  POST http://localhost:3000/posts/1/comments
-  Content-Type: application/json
+---
 
-  {
-    "text": "Great post!"
-  }
-  ```
+## **Understanding the REST Approach**
 
-- **Get Comments for a Post**
+In the current implementation, the client interacts with the server using RESTful endpoints. The application allows users to:
 
-  ```http
-  GET http://localhost:3000/posts/1/comments
-  ```
+- View a list of blog posts.
+- View the details of a specific post along with its comments.
+- Create new posts and comments.
+- Delete posts and comments.
 
-### **GraphQL API Testing**
+### **Multiple Requests Issue**
 
-Navigate to `http://localhost:4000/graphql` to access the GraphiQL interface.
+When viewing the details of a post (`/posts/:id`), the client needs to make **two separate requests**:
 
-- **Create a Post**
+1. **Fetch Post Details**:
 
-  ```graphql
-  mutation {
-    createPost(title: "First Post", content: "This is the first post.") {
-      id
-      title
-      content
-    }
-  }
-  ```
+   ```javascript
+   axios.get(`http://localhost:3000/posts/${id}`);
+   ```
 
-- **Create a Comment**
+2. **Fetch Comments for the Post**:
 
-  ```graphql
-  mutation {
-    createComment(postId: 1, text: "Great post!") {
-      id
-      postId
-      text
-    }
-  }
-  ```
+   ```javascript
+   axios.get(`http://localhost:3000/posts/${id}/comments`);
+   ```
 
-- **Fetch Posts with Comments**
+This pattern is common in REST APIs, where related data often requires multiple endpoints and requests. This can lead to:
 
-  ```graphql
-  query {
-    posts {
-      id
-      title
-      content
-      comments {
+- **Increased Network Overhead**: More requests mean more network traffic, which can impact performance, especially on slower connections.
+- **Complex Client Logic**: The client must manage multiple asynchronous operations and handle their results.
+
+### **Data Refetching**
+
+After performing mutations like deleting a post or a comment, the client needs to **refetch the data** to keep the UI updated:
+
+- **Refetch Posts**: After deleting a post, the client refetches the list of posts to reflect the change.
+- **Refetch Comments**: After deleting a comment, the client refetches the comments for the post.
+
+This approach can be inefficient because:
+
+- **Redundant Data Fetching**: The client may retrieve data it already has, consuming unnecessary bandwidth.
+- **Stale Data Risks**: There's a window where the UI might display outdated information until the refetch completes.
+
+---
+
+## **Migrating to GraphQL**
+
+We will address these issues by migrating the application to use GraphQL in the `refactor/migrate-to-graphql` branch.
+
+To switch to this branch:
+
+```bash
+git checkout -b refactor/migrate-to-graphql
+```
+
+In the GraphQL implementation, the client can fetch all the necessary data with a **single request**, and mutations can return updated data directly, eliminating the need for refetching.
+
+---
+
+## **Why Migrate to GraphQL?**
+
+Migrating to GraphQL offers several benefits:
+
+- **Single Endpoint**: All data operations are handled through one endpoint, simplifying the API structure.
+- **Fetch Multiple Resources in One Request**: GraphQL allows querying nested and related data in a single request.
+
+  - Example Query:
+
+    ```graphql
+    query {
+      post(id: 1) {
         id
-        text
+        title
+        content
+        comments {
+          id
+          text
+        }
       }
     }
-  }
-  ```
+    ```
+
+- **Efficient Data Fetching**: Clients can request exactly the data they need, reducing over-fetching or under-fetching.
+
+- **Improved Performance**: Fewer network requests and optimized data retrieval can lead to better performance, especially in mobile or low-bandwidth scenarios.
+
+- **Simplified Client Logic**: Managing data fetching and state becomes more straightforward with GraphQL's predictable responses.
+
+**Addressing Previous Issues:**
+
+- **Multiple Requests Reduced**: By fetching posts and their comments in one query, we eliminate the need for multiple requests.
+
+- **Eliminating Refetching**: After mutations like deletions, GraphQL can return the updated state of the data, so the client doesn't need to make additional requests to stay in sync.
 
 ---
 
-## **Observations and Benefits**
+## **Contributing**
 
-- **REST Limitations:**
-  - Multiple endpoints needed to fetch related data.
-  - Over-fetching or under-fetching of data.
-  - Increased number of network requests.
-
-- **GraphQL Advantages:**
-  - Single endpoint for all data operations.
-  - Clients can specify exactly what data they need.
-  - Ability to fetch nested and related data in a single request.
-  - Reduced network overhead.
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or suggestions.
 
 ---
 
-## **Hands-On Exercises**
+## **License**
 
-### **1. Extend the Schema with User Profiles**
-
-**Update the Schema in `index.ts`:**
-
-```typescript
-// Add this to your GraphQL schema definition
-
-type User {
-  id: ID!
-  name: String!
-  posts: [Post]
-}
-
-extend type Query {
-  users: [User]
-  user(id: ID!): User
-}
-
-extend type Mutation {
-  createUser(name: String!): User
-}
-```
-
-**Update Resolvers:**
-
-```typescript
-interface User {
-  id: number;
-  name: string;
-}
-
-let users: User[] = [];
-
-const root = {
-  // Existing resolvers...
-
-  users: () => users,
-  user: ({ id }: { id: number }) => users.find(u => u.id === id),
-  createUser: ({ name }: { name: string }) => {
-    const id = users.length + 1;
-    const user: User = { id, name };
-    users.push(user);
-    return user;
-  },
-  User: {
-    posts: (parent: User) => posts.filter(p => p.userId === parent.id),
-  },
-};
-```
-
-### **2. Implement Pagination**
-
-**Update Schema:**
-
-```typescript
-extend type Query {
-  posts(limit: Int, offset: Int): [Post]
-}
-```
-
-**Update Resolver:**
-
-```typescript
-posts: ({ limit, offset }: { limit?: number; offset?: number }) => {
-  const start = offset || 0;
-  const end = limit ? start + limit : posts.length;
-  return posts.slice(start, end);
-},
-```
-
-**Example Query:**
-
-```graphql
-query {
-  posts(limit: 2) {
-    id
-    title
-  }
-}
-```
+This project is open-source and available under the [MIT License](LICENSE).
 
 ---
 
-## **Conclusion**
-
-By completing this setup and experimenting with both the REST and GraphQL APIs, you and your team will:
-
-- Understand the practical differences between REST and GraphQL.
-- Experience the advantages of GraphQL in terms of flexibility and efficiency.
-- Gain hands-on experience with TypeScript in backend development.
-
----
-
-## **Additional Resources**
-
-- **GraphQL Official Website**: [https://graphql.org](https://graphql.org)
-- **Express.js Documentation**: [https://expressjs.com](https://expressjs.com)
-- **TypeScript Documentation**: [https://www.typescriptlang.org/docs/](https://www.typescriptlang.org/docs/)
-- **Express-GraphQL**: [https://github.com/graphql/express-graphql](https://github.com/graphql/express-graphql)
-
----
-
-**Feel free to reach out if you have any questions or need further assistance!**
+**Feel free to explore the code, run the application, and check out the `refactor/migrate-to-graphql` branch to see the migration process and experience the benefits of using GraphQL firsthand.**

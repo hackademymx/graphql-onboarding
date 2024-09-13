@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Post } from '../types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const PostList: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -17,7 +18,15 @@ const PostList: React.FC = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-4">Posts</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Posts</h2>
+                <button
+                    onClick={() => navigate('/create')}
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                    Create New Post
+                </button>
+            </div>
             {posts.map((post) => (
                 <div key={post.id} className="border p-4 mb-4">
                     <h3 className="text-xl font-semibold">

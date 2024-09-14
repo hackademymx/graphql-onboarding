@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { GET_POST } from '../graphql/queries';
 import { CREATE_COMMENT, DELETE_COMMENT } from '../graphql/mutations';
 import { useParams, Link } from 'react-router-dom';
+import { type Comment } from '../types';
 
 const PostDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();

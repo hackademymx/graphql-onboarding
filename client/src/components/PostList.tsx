@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { GET_POSTS } from '../graphql/queries';
 import { DELETE_POST } from '../graphql/mutations';
 import { Link, useNavigate } from 'react-router-dom';
+import { type Post } from '../types';
 
 const PostList: React.FC = () => {
     const navigate = useNavigate();

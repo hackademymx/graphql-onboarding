@@ -1,27 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Post } from '../types';
+import React from 'react';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_POSTS } from '../graphql/queries';
+import { DELETE_POST } from '../graphql/mutations';
 import { Link, useNavigate } from 'react-router-dom';
+import { type Post } from '../types';
 
 const PostList: React.FC = () => {
-    const [posts, setPosts] = useState<Post[]>([]);
     const navigate = useNavigate();
 
-    const fetchPosts = async () => {
-        const response = await axios.get<Post[]>('http://localhost:3000/posts');
-        setPosts(response.data);
-    };
+    // Fetch posts using Apollo Client
+    const { loading, error, data } = useQuery(GET_POSTS);
 
-    useEffect(() => {
-        fetchPosts();
-    }, []);
+    // Mutation to delete a post
+    const [deletePost] = useMutation(DELETE_POST, {
+        refetchQueries: [{ query: GET_POSTS }],
+    });
 
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this post?')) {
-            await axios.delete(`http://localhost:3000/posts/${id}`);
-            fetchPosts(); // Refresh the list after deletion
+            await deletePost({ variables: { id: id.toString() } });
         }
     };
+
+    if (loading) return <p>Loading posts...</p>;
+    if (error) return <p>Error loading posts: {error.message}</p>;
+
+    const posts = data.posts;
 
     return (
         <div className="min-h-screen bg-gray-50 bg-pattern">

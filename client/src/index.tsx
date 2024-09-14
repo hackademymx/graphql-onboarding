@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client';
+import client from './apolloClient';
 
 const container = document.getElementById('root');
 
@@ -14,7 +16,9 @@ if (container) {
     root.render(
         <React.StrictMode>
             <BrowserRouter>
-                <App />
+                <ApolloProvider client={client}>
+                    <App />
+                </ApolloProvider>
             </BrowserRouter>
         </React.StrictMode>
     );

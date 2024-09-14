@@ -1,52 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Post, Comment } from '../types';
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_POST } from '../graphql/queries';
+import { CREATE_COMMENT, DELETE_COMMENT } from '../graphql/mutations';
 import { useParams, Link } from 'react-router-dom';
+import { type Comment } from '../types';
 
 const PostDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const [post, setPost] = useState<Post | null>(null);
-    const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState('');
 
-    const fetchPost = async () => {
-        const response = await axios.get<Post>(`http://localhost:3000/posts/${id}`);
-        setPost(response.data);
-    };
+    // Fetch the post and comments using Apollo Client
+    const { loading, error, data } = useQuery(GET_POST, {
+        variables: { id },
+    });
 
-    const fetchComments = async () => {
-        const response = await axios.get<Comment[]>(
-            `http://localhost:3000/posts/${id}/comments`
-        );
-        setComments(response.data);
-    };
+    // Mutation to create a comment
+    const [createComment] = useMutation(CREATE_COMMENT, {
+        refetchQueries: [{ query: GET_POST, variables: { id } }],
+    });
 
-    useEffect(() => {
-        fetchPost();
-        fetchComments();
-    }, [id]);
+    // Mutation to delete a comment
+    const [deleteComment] = useMutation(DELETE_COMMENT, {
+        refetchQueries: [{ query: GET_POST, variables: { id } }],
+    });
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        await axios.post(`http://localhost:3000/posts/${id}/comments`, {
-            text: commentText,
-        });
-
+        if (!commentText.trim()) return;
+        await createComment({ variables: { postId: id, text: commentText } });
         setCommentText('');
-        fetchComments();
     };
 
     const handleDeleteComment = async (commentId: number) => {
         if (window.confirm('Are you sure you want to delete this comment?')) {
-            await axios.delete(`http://localhost:3000/comments/${commentId}`);
-            fetchComments(); // Refresh comments after deletion
+            await deleteComment({ variables: { id: commentId.toString() } });
         }
     };
 
-    if (!post) {
-        return <div className="flex items-center justify-center h-screen">Loading...</div>;
-    }
+    if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    if (error) return <div className="flex items-center justify-center h-screen">Error: {error.message}</div>;
+
+    const post = data.post;
+    const comments = post.comments;
 
     return (
         <div className="min-h-screen bg-gray-50 bg-pattern">

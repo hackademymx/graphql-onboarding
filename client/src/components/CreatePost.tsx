@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useMutation } from '@apollo/client';
+import { CREATE_POST } from '../graphql/mutations';
 import { useNavigate, Link } from 'react-router-dom';
 
 const CreatePost: React.FC = () => {
@@ -7,16 +8,18 @@ const CreatePost: React.FC = () => {
     const [content, setContent] = useState('');
     const navigate = useNavigate();
 
+    // Mutation to create a new post
+    const [createPost] = useMutation(CREATE_POST, {
+        onCompleted: () => {
+            // Redirect to the home page after creation
+            navigate('/');
+        },
+        refetchQueries: ['GetPosts'],
+    });
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        await axios.post('http://localhost:3000/posts', {
-            title,
-            content,
-        });
-
-        // Redirect to the home page after creation
-        navigate('/');
+        await createPost({ variables: { title, content } });
     };
 
     return (

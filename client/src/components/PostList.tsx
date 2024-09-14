@@ -46,7 +46,7 @@ const PostList: React.FC = () => {
                 </div>
                 {posts.length > 0 ? (
                     <div className="space-y-4">
-                        {posts.map((post: any) => (
+                        {posts.map((post: Post) => (
                             <div
                                 key={post.id}
                                 className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center hover:bg-gray-100 transition duration-200"

@@ -59,7 +59,7 @@ const PostDetail: React.FC = () => {
                         {/* Comments List */}
                         {comments.length > 0 ? (
                             <div className="space-y-4">
-                                {comments.map((comment: any) => (
+                                {comments.map((comment: Comment) => (
                                     <div
                                         key={comment.id}
                                         className="bg-gray-100 p-4 rounded-lg flex justify-between items-start"
